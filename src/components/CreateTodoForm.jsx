@@ -1,14 +1,17 @@
 import { useState } from 'react'
-import { createTodo } from '../api.js'
+import { useDispatch } from 'react-redux'
+import { addTodo } from '../store/todosSlice.js'
+import { unauthorized } from '../store/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**
  * CreateTodoForm
- * A simple form to create a new todo.
- * Calls onCreated(newTodo) after a successful API response.
+ * Dispatches addTodo thunk directly to Redux — no callback props needed.
  */
-export default function CreateTodoForm({ onCreated, onUnauthorized }) {
+export default function CreateTodoForm() {
+  const dispatch = useDispatch()
   const addToast = useToast()
+
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,14 +20,13 @@ export default function CreateTodoForm({ onCreated, onUnauthorized }) {
     e.preventDefault()
     setLoading(true)
     try {
-      const newTodo = await createTodo(title.trim(), description.trim())
-      onCreated(newTodo)
-      // Clear form
+      await dispatch(addTodo({ title: title.trim(), description: description.trim() })).unwrap()
+      addToast('Todo created!', 'success')
       setTitle('')
       setDescription('')
     } catch (err) {
-      if (err.status === 401) { onUnauthorized(); return }
-      addToast(err.message, 'error')
+      if (err.status === 401) { dispatch(unauthorized()); return }
+      addToast(err.message || 'Failed to create todo', 'error')
     } finally {
       setLoading(false)
     }

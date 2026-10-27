@@ -1,23 +1,27 @@
-import { useState } from 'react'
-import { updateTodo, patchTodo, deleteTodo } from '../api.js'
+import { useState, useRef, useLayoutEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { editTodo, toggleTodo, removeTodo } from '../store/todosSlice.js'
+import { unauthorized } from '../store/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**
  * TodoCard
  *
  * Renders a single todo with:
- *  - Toggle completion (PATCH)
- *  - Inline edit (PUT full update)
- *  - Delete with inline confirm (no browser dialog)
+ *  - Toggle completion (dispatches toggleTodo)
+ *  - Inline edit (dispatches editTodo)
+ *  - Delete with inline confirm (dispatches removeTodo)
  *
  * Props:
- *  todo             — the todo object { id, title, description, completed }
- *  onUpdated        — called with the updated todo after PATCH/PUT
- *  onDeleted        — called with the todo id after DELETE
- *  onUnauthorized   — called when a 401 is received
+ *  todo — the todo object { id, title, description, completed }
+ *
+ * No onUpdated / onDeleted / onUnauthorized props needed —
+ * everything goes directly to the Redux store.
  */
-export default function TodoCard({ todo, onUpdated, onDeleted, onUnauthorized }) {
+export default function TodoCard({ todo }) {
+  const dispatch = useDispatch()
   const addToast = useToast()
+
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editTitle, setEditTitle] = useState(todo.title)
@@ -25,41 +29,53 @@ export default function TodoCard({ todo, onUpdated, onDeleted, onUnauthorized })
   const [editCompleted, setEditCompleted] = useState(todo.completed)
   const [loading, setLoading] = useState(false)
 
+  const titleInputRef = useRef(null)
+
+  /**
+   * useLayoutEffect — auto-focus the title input when edit mode opens.
+   * Runs before the browser paints so the input is focused immediately.
+   */
+  useLayoutEffect(() => {
+    if (editing && titleInputRef.current) {
+      titleInputRef.current.focus()
+    }
+  }, [editing])
+
+  // Helper: handle 401 from any action
   function handle401(err) {
-    if (err.status === 401) { onUnauthorized(); return true }
+    if (err.status === 401) { dispatch(unauthorized()); return true }
     return false
   }
 
-  // ── Toggle completed via PATCH ────────────────────────────────────────────
+  // ── Toggle completed ──────────────────────────────────────────────────────
   async function handleToggle() {
     setLoading(true)
     try {
-      const updated = await patchTodo(todo.id, { completed: !todo.completed })
-      onUpdated(updated)
+      await dispatch(toggleTodo({ id: todo.id, completed: !todo.completed })).unwrap()
     } catch (err) {
       if (handle401(err)) return
-      addToast(err.message, 'error')
+      addToast(err.message || 'Failed to update todo', 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  // ── Save edit via PUT (full update) ───────────────────────────────────────
+  // ── Save edit ─────────────────────────────────────────────────────────────
   async function handleSave() {
     if (!editTitle.trim()) return
     setLoading(true)
     try {
-      const updated = await updateTodo(
-        todo.id,
-        editTitle.trim(),
-        editDescription.trim(),
-        editCompleted
-      )
-      onUpdated(updated)
+      await dispatch(editTodo({
+        id: todo.id,
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        completed: editCompleted,
+      })).unwrap()
+      addToast('Todo updated!', 'success')
       setEditing(false)
     } catch (err) {
       if (handle401(err)) return
-      addToast(err.message, 'error')
+      addToast(err.message || 'Failed to save todo', 'error')
     } finally {
       setLoading(false)
     }
@@ -70,11 +86,11 @@ export default function TodoCard({ todo, onUpdated, onDeleted, onUnauthorized })
     setConfirmDelete(false)
     setLoading(true)
     try {
-      await deleteTodo(todo.id)
-      onDeleted(todo.id)
+      await dispatch(removeTodo(todo.id)).unwrap()
+      addToast('Todo deleted.', 'info')
     } catch (err) {
       if (handle401(err)) return
-      addToast(err.message, 'error')
+      addToast(err.message || 'Failed to delete todo', 'error')
       setLoading(false)
     }
   }
@@ -99,6 +115,7 @@ export default function TodoCard({ todo, onUpdated, onDeleted, onUnauthorized })
         {editing && (
           <div className="edit-form">
             <input
+              ref={titleInputRef}
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
@@ -145,7 +162,7 @@ export default function TodoCard({ todo, onUpdated, onDeleted, onUnauthorized })
         )}
       </div>
 
-      {/* ── Action buttons (always visible in view mode) ── */}
+      {/* ── Action buttons ── */}
       {!editing && !confirmDelete && (
         <div className="todo-actions">
           <button

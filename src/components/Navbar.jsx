@@ -1,15 +1,21 @@
+import { useDispatch, useSelector } from 'react-redux'
+import { logout } from '../store/authSlice.js'
+
 /**
  * Navbar
- * Shows the app name, logged-in user email, and a Logout button.
- * All logout cleanup (cookie + localStorage) is handled by onLogout() in App.jsx.
+ * Reads user email from Redux store.
+ * Dispatches logout() action directly — no props needed.
  */
-export default function Navbar({ userEmail, onLogout }) {
+export default function Navbar() {
+  const dispatch = useDispatch()
+  const email = useSelector((state) => state.auth.user?.email)
+
   return (
     <nav className="navbar">
       <span className="navbar-brand">📝 Todo App</span>
       <div className="navbar-user">
-        <span>{userEmail}</span>
-        <button className="btn btn-danger" onClick={onLogout}>
+        <span>{email}</span>
+        <button className="btn btn-danger" onClick={() => dispatch(logout())}>
           Logout
         </button>
       </div>

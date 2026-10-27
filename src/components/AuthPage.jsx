@@ -1,47 +1,37 @@
 import { useState } from 'react'
-import { signUp, logIn, saveToken, saveEmail } from '../api.js'
+import { useDispatch, useSelector } from 'react-redux'
+import { loginUser, signupUser } from '../store/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**
  * AuthPage
  *
- * Handles both Sign Up and Log In in one component.
- * On success, saves the JWT to a cookie and calls onAuth()
- * so the parent (App) switches to the dashboard.
+ * Handles both Sign Up and Log In.
+ * Dispatches loginUser / signupUser thunks to the Redux store.
+ * No props needed — auth state lives in Redux.
  */
-export default function AuthPage({ onAuth }) {
+export default function AuthPage() {
+  const dispatch = useDispatch()
   const addToast = useToast()
-  const [mode, setMode] = useState('login') // 'login' | 'signup'
+  const { status } = useSelector((state) => state.auth)
 
+  const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
 
   const isSignup = mode === 'signup'
+  const loading = status === 'loading'
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setLoading(true)
+    const thunk = isSignup ? signupUser : loginUser
     try {
-      // Call the relevant endpoint
-      const data = isSignup
-        ? await signUp(email, password)
-        : await logIn(email, password)
-
-      // Save JWT into a cookie
-      saveToken(data.access_token)
-
-      // Save email so it persists across page reloads
-      saveEmail(data.email)
-
+      // .unwrap() throws if the thunk rejected, so we can catch the error
+      await dispatch(thunk({ email, password })).unwrap()
       addToast(isSignup ? 'Account created! Welcome 🎉' : 'Logged in successfully!', 'success')
-
-      // Inform parent: authentication succeeded
-      onAuth(data)
-    } catch (err) {
-      addToast(err.message, 'error')
-    } finally {
-      setLoading(false)
+      // App.jsx reads user from Redux — it automatically switches to Dashboard
+    } catch (errMessage) {
+      addToast(errMessage, 'error')
     }
   }
 

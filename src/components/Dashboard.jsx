@@ -1,79 +1,58 @@
-import { useEffect, useState } from 'react'
-import { getTodos } from '../api.js'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTodos } from '../store/todosSlice.js'
+import { unauthorized } from '../store/authSlice.js'
+import { useToast } from '../context/ToastContext.jsx'
 import Navbar from './Navbar.jsx'
 import CreateTodoForm from './CreateTodoForm.jsx'
 import TodoCard from './TodoCard.jsx'
-import { useToast } from '../context/ToastContext.jsx'
 
 /**
  * Dashboard
  *
- * Main authenticated view. Fetches all todos on mount,
- * and keeps local state in sync after every create/update/delete.
+ * Reads todos from Redux store. Dispatches fetchTodos on mount.
+ * No longer manages todo state locally — Redux owns it.
+ * No props needed — everything comes from the store.
  */
-export default function Dashboard({ user, onLogout, onUnauthorized }) {
+export default function Dashboard() {
+  const dispatch = useDispatch()
   const addToast = useToast()
-  const [todos, setTodos] = useState([])
-  const [loadingTodos, setLoadingTodos] = useState(true)
-  const [fetchError, setFetchError] = useState('')
+  const { items: todos, status, error } = useSelector((state) => state.todos)
 
-  // ── Fetch todos on mount ──────────────────────────────────────────────────
+  const loadingTodos = status === 'loading'
+
+  // Fetch todos when the dashboard mounts
   useEffect(() => {
-    async function fetchTodos() {
+    async function load() {
       try {
-        const data = await getTodos()
-        setTodos(data)
+        await dispatch(fetchTodos()).unwrap()
       } catch (err) {
-        // Stale / invalid token → kick back to login
+        // 401 = stale token → kick to login
         if (err.status === 401) {
-          onUnauthorized()
+          dispatch(unauthorized())
           return
         }
-        setFetchError(err.message)
-        addToast(err.message, 'error')
-      } finally {
-        setLoadingTodos(false)
+        addToast(err.message || 'Failed to load todos', 'error')
       }
     }
-    fetchTodos()
-  }, [])
+    load()
+  }, [dispatch])
 
-  // ── Handlers passed down to children ─────────────────────────────────────
-
-  function handleCreated(newTodo) {
-    // Add new todo to the top of the list
-    setTodos((prev) => [newTodo, ...prev])
-    addToast('Todo created!', 'success')
-  }
-
-  function handleUpdated(updatedTodo) {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === updatedTodo.id ? updatedTodo : t))
-    )
-    addToast('Todo updated!', 'success')
-  }
-
-  function handleDeleted(deletedId) {
-    setTodos((prev) => prev.filter((t) => t.id !== deletedId))
-    addToast('Todo deleted.', 'info')
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <Navbar userEmail={user.email} onLogout={onLogout} />
+      <Navbar />
 
       <div className="dashboard">
         <h2>My Todos</h2>
 
-        {/* Create form */}
-        <CreateTodoForm onCreated={handleCreated} onUnauthorized={onUnauthorized} />
+        {/* Create form — dispatches to Redux directly, no callback prop */}
+        <CreateTodoForm />
 
         {/* Todo list */}
         {loadingTodos && <p className="loading">Loading todos…</p>}
-        {fetchError && <p className="error-msg">{fetchError}</p>}
+        {error && <p className="error-msg">{error}</p>}
 
-        {!loadingTodos && !fetchError && (
+        {!loadingTodos && !error && (
           <div className="todo-list">
             {todos.length === 0 ? (
               <p className="empty">No todos yet. Create your first one above! 🎉</p>
@@ -82,9 +61,7 @@ export default function Dashboard({ user, onLogout, onUnauthorized }) {
                 <TodoCard
                   key={todo.id}
                   todo={todo}
-                  onUpdated={handleUpdated}
-                  onDeleted={handleDeleted}
-                  onUnauthorized={onUnauthorized}
+                  // No onUpdated / onDeleted / onUnauthorized props needed!
                 />
               ))
             )}

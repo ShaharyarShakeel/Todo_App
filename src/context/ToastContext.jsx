@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
 /**
  * ToastContext
@@ -25,8 +25,14 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
+  // useMemo keeps the same object reference as long as addToast doesn't change.
+  // Since addToast is memoized with useCallback([]), it NEVER changes.
+  // So this context value is created ONCE and consumers never re-render
+  // just because toasts were added/removed.
+  const contextValue = useMemo(() => ({ addToast }), [addToast])
+
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </ToastContext.Provider>
