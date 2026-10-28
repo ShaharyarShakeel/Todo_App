@@ -15,7 +15,12 @@ import { ToastProvider } from './context/ToastContext.jsx'
  */
 export default function App() {
   const dispatch = useDispatch()
-  const user = useSelector((state) => state.auth.user)
+  // useSelector gets the current Redux state.
+  // state represents the entire Redux store state.
+  // state.auth accesses the auth slice in the Redux store.
+  // state.auth.user accesses the user property inside the auth slice.
+  // user stores the value returned by the selector function.
+  const user = useSelector((state) => state.auth.user) 
 
   /**
    * Cross-tab logout sync.
@@ -24,7 +29,7 @@ export default function App() {
    */
   useEffect(() => {
     function onStorageChange(e) {
-      if (e.key === 'user_email' && e.newValue === null) {
+      if (e.key === 'user_email' && e.newValue === null) { //It checks if the user_email is removed from localStorage and newValue is null, which means the user has logged out in another tab. In that case, it dispatches the logout action to update the state in this tab as well.
         dispatch(logout())
       }
     }

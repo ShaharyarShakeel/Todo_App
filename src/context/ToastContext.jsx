@@ -29,7 +29,13 @@ export function ToastProvider({ children }) {
   // Since addToast is memoized with useCallback([]), it NEVER changes.
   // So this context value is created ONCE and consumers never re-render
   // just because toasts were added/removed.
-  const contextValue = useMemo(() => ({ addToast }), [addToast])
+  // useMemo checks the dependencies array and only recalculates the value if addToast changes, which it won't due to useCallback with an empty dependency array. This optimization prevents unnecessary re-renders of components that consume the context, improving performance.
+  // In addToast, state updates (setToasts) are handled internally, so consumers don't need to re-render when the toast list changes.
+  //We are sending function reference in context value instead of the actual state, so that consumers can call addToast without re-rendering when toasts change because addToast have [] as dependency and it will never change.
+  const contextValue = useMemo(
+    () => ({ addToast }),
+    [addToast]
+  )
 
   return (
     <ToastContext.Provider value={contextValue}>
