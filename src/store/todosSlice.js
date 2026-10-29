@@ -12,7 +12,7 @@ import { getTodos, createTodo, updateTodo, patchTodo, deleteTodo } from '../api.
 
 export const fetchTodos = createAsyncThunk(
   'todos/fetchTodos',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => { //rejectWithValue() — returns custom error information if the request fails.
     try {
       return await getTodos()
     } catch (err) {
