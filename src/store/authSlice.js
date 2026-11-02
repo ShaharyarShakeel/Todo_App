@@ -33,7 +33,7 @@ export const loginUser = createAsyncThunk(
 
 export const signupUser = createAsyncThunk(
   'auth/signupUser',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }, { rejectWithValue }) => { //rejectWithValue is used to return a custom error when an API request fails in Redux Toolkit.
     try {
       const data = await signUp(email, password)
       saveToken(data.access_token)

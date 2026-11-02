@@ -9,10 +9,10 @@
  *
  * Cookie helper functions are also in this file.
  *
- * Base URL:  http://localhost:8000
+ * Base URL:  http://localhost:8000 
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const BASE_URL = import.meta.env.BASE_URL
 
 // ─── Cookie helpers ─────────────────────────────────────────────────────────
 

@@ -4,5 +4,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  envPrefix: ['VITE_', 'BASE_URL'], //tells Vite which environment variable prefixes are allowed to be exposed to your frontend code.
 })
 
