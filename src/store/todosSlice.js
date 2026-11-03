@@ -66,7 +66,7 @@ export const removeTodo = createAsyncThunk(
   }
 )
 
-// ── Slice ─────────────────────────────────────────────────────────────────────
+// ── Slice ────────────────────────────────────────────────────────
 
 const todosSlice = createSlice({
   name: 'todos',

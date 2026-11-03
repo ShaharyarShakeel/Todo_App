@@ -20,10 +20,11 @@ export default function App() {
   // state.auth accesses the auth slice in the Redux store.
   // state.auth.user accesses the user property inside the auth slice.
   // user stores the value returned by the selector function.
-  const user = useSelector((state) => state.auth.user) 
+  const user = useSelector((state) => state.auth.user) //isolate it
 
   /**
    * Cross-tab logout sync.
+   * useEffect registers a storage event listener that listens for changes to localStorage.
    * When user_email is removed from localStorage in another tab,
    * dispatch logout() here too so this tab also shows AuthPage.
    */

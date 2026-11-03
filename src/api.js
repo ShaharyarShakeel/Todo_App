@@ -9,7 +9,6 @@
  *
  * Cookie helper functions are also in this file.
  *
- * Base URL:  http://localhost:8000 
  */
 
 const BASE_URL = import.meta.env.BASE_URL
@@ -54,6 +53,7 @@ async function request(path, options = {}) {
   const token = getToken()
 
   const headers = {
+    
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
