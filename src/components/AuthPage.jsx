@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { loginUser, signupUser } from '../store/authSlice.js'
+import { loginUser, signupUser, selectAuthStatus } from '../features/auth/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**
@@ -13,7 +13,7 @@ import { useToast } from '../context/ToastContext.jsx'
 export default function AuthPage() {
   const dispatch = useDispatch()
   const addToast = useToast()
-  const { status } = useSelector((state) => state.auth)
+  const status = useSelector(selectAuthStatus)
 
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')

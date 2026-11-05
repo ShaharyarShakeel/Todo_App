@@ -47,14 +47,17 @@ todo-frontend/
 │   │   └── TodoCard.jsx        # Individual todo with edit/delete
 │   ├── context/
 │   │   └── ToastContext.jsx    # Toast notification system
+│   ├── features/
+│   │   ├── auth/
+│   │   │   └── authSlice.js    # Auth state + async thunks
+│   │   └── todos/
+│   │       └── todosSlice.js   # Todos state + async thunks
 │   ├── store/
-│   │   ├── store.js            # Redux store configuration
-│   │   ├── authSlice.js        # Auth state + async thunks
-│   │   └── todosSlice.js       # Todos state + async thunks
+│   │   └── store.js            # Redux store configuration
 │   ├── api.js                  # Centralised API layer + cookie helpers
 │   ├── App.jsx                 # Root component, routing logic
 │   ├── main.jsx                # Entry point, Redux Provider setup
-│   └── index.css               # Global styles
+│   └── style.css               # Global styles
 ├── .env                        # Environment variables (not committed)
 ├── .env.example                # Template for required environment variables
 ├── .gitignore

@@ -11,7 +11,7 @@
  *
  */
 
-const BASE_URL = import.meta.env.BASE_URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 // ─── Cookie helpers ─────────────────────────────────────────────────────────
 
@@ -59,7 +59,10 @@ async function request(path, options = {}) {
     ...options.headers,
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const cleanBaseUrl = BASE_URL.replace(/\/$/, '')
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+
+  const response = await fetch(`${cleanBaseUrl}${cleanPath}`, {
     ...options,
     headers,
     credentials: 'include',
@@ -71,7 +74,9 @@ async function request(path, options = {}) {
     try {
       const err = await response.json()
       detail = err.detail || detail
-    } catch (_) {}
+    } catch {
+      // Ignore if response body is not JSON
+    }
     const error = new Error(detail)
     // Mark 401 Unauthorized so callers can trigger logout
     if (response.status === 401) error.status = 401

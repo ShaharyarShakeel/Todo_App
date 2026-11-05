@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { addTodo } from '../store/todosSlice.js'
-import { unauthorized } from '../store/authSlice.js'
+import { addTodo } from '../features/todos/todosSlice.js'
+import { unauthorized } from '../features/auth/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**

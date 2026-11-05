@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import { editTodo, toggleTodo, removeTodo } from '../store/todosSlice.js'
-import { unauthorized } from '../store/authSlice.js'
+import { editTodo, toggleTodo, removeTodo } from '../features/todos/todosSlice.js'
+import { unauthorized } from '../features/auth/authSlice.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 /**

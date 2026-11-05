@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../store/authSlice.js'
+import { logout, selectUserEmail } from '../features/auth/authSlice.js'
 
 /**
  * Navbar
@@ -8,7 +8,7 @@ import { logout } from '../store/authSlice.js'
  */
 export default function Navbar() {
   const dispatch = useDispatch()
-  const email = useSelector((state) => state.auth.user?.email)
+  const email = useSelector(selectUserEmail)
 
   return (
     <nav className="navbar">

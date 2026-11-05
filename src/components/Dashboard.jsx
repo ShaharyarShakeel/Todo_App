@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTodos } from '../store/todosSlice.js'
-import { unauthorized } from '../store/authSlice.js'
+import { fetchTodos, selectTodos, selectTodosStatus, selectTodosError } from '../features/todos/todosSlice.js'
+import { unauthorized } from '../features/auth/authSlice.js'
 import Navbar from './Navbar.jsx'
 import CreateTodoForm from './CreateTodoForm.jsx'
 import TodoCard from './TodoCard.jsx'
@@ -16,19 +16,21 @@ import TodoCard from './TodoCard.jsx'
  */
 export default function Dashboard() {
   const dispatch = useDispatch()
-  const { items: todos, status, error } = useSelector((state) => state.todos)
+  const todos  = useSelector(selectTodos)
+  const status = useSelector(selectTodosStatus)
+  const error  = useSelector(selectTodosError)
 
-  useEffect(() => {
-    loadTodos()
-  }, [])
-
-  async function loadTodos() {
+  const loadTodos = useCallback(async () => {
     try {
       await dispatch(fetchTodos()).unwrap()
     } catch (err) {
       if (err?.status === 401) dispatch(unauthorized())
     }
-  }
+  }, [dispatch])
+
+  useEffect(() => {
+    loadTodos()
+  }, [loadTodos])
 
   // ── Loading screen (initial load AND retry) ──────────────────────────────
   if (status === 'loading') {

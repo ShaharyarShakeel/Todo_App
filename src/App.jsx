@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { logout, unauthorized } from './store/authSlice.js'
+import { logout, selectUser } from './features/auth/authSlice.js'
 import AuthPage from './components/AuthPage.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
@@ -20,7 +20,7 @@ export default function App() {
   // state.auth accesses the auth slice in the Redux store.
   // state.auth.user accesses the user property inside the auth slice.
   // user stores the value returned by the selector function.
-  const user = useSelector((state) => state.auth.user) //isolate it
+  const user = useSelector(selectUser)
 
   /**
    * Cross-tab logout sync.

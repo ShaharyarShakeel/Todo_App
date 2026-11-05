@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { getTodos, createTodo, updateTodo, patchTodo, deleteTodo } from '../api.js'
+import { getTodos, createTodo, updateTodo, patchTodo, deleteTodo } from '../../api.js'
 
 /**
  * todosSlice
@@ -113,4 +113,12 @@ const todosSlice = createSlice({
 })
 
 export default todosSlice.reducer
+
+// ── Selectors ─────────────────────────────────────────────────────────────────
+// Components import and use these instead of accessing state.todos.* directly.
+// If the state shape changes, only update here — not in every component.
+
+export const selectTodos       = (state) => state.todos.items
+export const selectTodosStatus = (state) => state.todos.status
+export const selectTodosError  = (state) => state.todos.error
 

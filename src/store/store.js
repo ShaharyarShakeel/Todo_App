@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer from './authSlice.js'
-import todosReducer from './todosSlice.js'
+import authReducer from '../features/auth/authSlice.js'
+import todosReducer from '../features/todos/todosSlice.js'
 
 /**
  * Redux Store

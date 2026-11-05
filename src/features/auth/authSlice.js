@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { logIn, signUp, saveToken, saveEmail, getToken, getEmail, clearToken, clearEmail } from '../api.js'
+import { logIn, signUp, saveToken, saveEmail, getToken, getEmail, clearToken, clearEmail } from '../../api.js'
 
 /**
  * authSlice
@@ -103,4 +103,12 @@ const authSlice = createSlice({
 
 export const { logout, unauthorized } = authSlice.actions
 export default authSlice.reducer
+
+// ── Selectors ─────────────────────────────────────────────────────────────────
+// Components import and use these instead of accessing state.auth.* directly.
+// If the state shape changes, only update here — not in every component.
+
+export const selectUser       = (state) => state.auth.user
+export const selectUserEmail  = (state) => state.auth.user?.email
+export const selectAuthStatus = (state) => state.auth.status
 
