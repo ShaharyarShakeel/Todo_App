@@ -1,5 +1,5 @@
 /**
- * api.js — Centralised API layer
+ * api.js â€” Centralised API layer
  *
  * All backend calls live here. The JWT token is stored in an
  * httpOnly-style cookie (js-accessible cookie for this demo, since
@@ -13,7 +13,7 @@
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-// ─── Cookie helpers ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Cookie helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Save the JWT token to a cookie (expires in 1 day) */
 export function saveToken(token) {
@@ -47,7 +47,7 @@ export function clearEmail() {
   localStorage.removeItem('user_email')
 }
 
-// ─── Base fetch wrapper ──────────────────────────────────────────────────────
+// â”€â”€â”€ Base fetch wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function request(path, options = {}) {
   const token = getToken()
@@ -83,22 +83,27 @@ async function request(path, options = {}) {
     throw error
   }
 
-  // 204 No Content — return null
+  // 204 No Content â€” return null
   if (response.status === 204) return null
-  return response.json()
+
+  // Keep the parsed payload in a named local so it is easy to inspect in
+  // the debugger at API call breakpoints.
+  const data = await response.json()
+  return data
 }
 
-// ─── Auth API ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Auth API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * POST /auth/signup
  * @returns {Promise<{id, email, access_token, token_type}>}
  */
 export async function signUp(email, password) {
-  return request('/auth/signup', {
+  const data = await request('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+  return data
 }
 
 /**
@@ -106,20 +111,31 @@ export async function signUp(email, password) {
  * @returns {Promise<{id, email, access_token, token_type}>}
  */
 export async function logIn(email, password) {
-  return request('/auth/login', {
+  const data = await request('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+  return data
 }
 
-// ─── Todo API ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Todo API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * GET /todos/
  * @returns {Promise<Array<{id, title, description, completed}>>}
  */
+export async function validateSession() {
+  return request('/auth/session')
+}
+export async function signInWithGoogle(credential) {
+  return request('/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  })
+}
 export async function getTodos() {
-  return request('/todos/')
+  const data = await request('/todos/')
+  return data
 }
 
 /**
@@ -127,38 +143,42 @@ export async function getTodos() {
  * @returns {Promise<{id, title, description, completed}>}
  */
 export async function createTodo(title, description) {
-  return request('/todos/', {
+  const data = await request('/todos/', {
     method: 'POST',
     body: JSON.stringify({ title, description: description || null }),
   })
+  return data
 }
 
 /**
- * PUT /todos/:id  — Full update
+ * PUT /todos/:id  â€” Full update
  * @returns {Promise<{id, title, description, completed}>}
  */
 export async function updateTodo(id, title, description, completed) {
-  return request(`/todos/${id}`, {
+  const data = await request(`/todos/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ title, description: description || null, completed }),
   })
+  return data
 }
 
 /**
- * PATCH /todos/:id  — Partial update
+ * PATCH /todos/:id  â€” Partial update
  * @returns {Promise<{id, title, description, completed}>}
  */
 export async function patchTodo(id, fields) {
-  return request(`/todos/${id}`, {
+  const data = await request(`/todos/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(fields),
   })
+  return data
 }
 
 /**
  * DELETE /todos/:id
  */
 export async function deleteTodo(id) {
-  return request(`/todos/${id}`, { method: 'DELETE' })
+  const data = await request(`/todos/${id}`, { method: 'DELETE' })
+  return data
 }
 

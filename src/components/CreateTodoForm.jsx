@@ -18,9 +18,14 @@ export default function CreateTodoForm() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    const trimmedTitle = title.trim()
+    if (!trimmedTitle) {
+      addToast('Please enter a todo title before creating it.', 'warning')
+      return
+    }
     setLoading(true)
     try {
-      await dispatch(addTodo({ title: title.trim(), description: description.trim() })).unwrap()
+      await dispatch(addTodo({ title: trimmedTitle, description: description.trim() })).unwrap()
       addToast('Todo created!', 'success')
       setTitle('')
       setDescription('')
@@ -58,7 +63,7 @@ export default function CreateTodoForm() {
           />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={loading}>
+        <button className="btn btn-primary" type="submit" disabled={loading || title.length === 0}>
           {loading ? 'Creating…' : 'Create Todo'}
         </button>
       </form>

@@ -14,7 +14,8 @@ export const fetchTodos = createAsyncThunk(
   'todos/fetchTodos',
   async (_, { rejectWithValue }) => { //rejectWithValue() — returns custom error information if the request fails.
     try {
-      return await getTodos()
+      const data = await getTodos()
+      return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })
     }
@@ -25,7 +26,8 @@ export const addTodo = createAsyncThunk(
   'todos/addTodo',
   async ({ title, description }, { rejectWithValue }) => {
     try {
-      return await createTodo(title, description)
+      const data = await createTodo(title, description)
+      return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })
     }
@@ -36,7 +38,8 @@ export const editTodo = createAsyncThunk(
   'todos/editTodo',
   async ({ id, title, description, completed }, { rejectWithValue }) => {
     try {
-      return await updateTodo(id, title, description, completed)
+      const data = await updateTodo(id, title, description, completed)
+      return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })
     }
@@ -47,7 +50,8 @@ export const toggleTodo = createAsyncThunk(
   'todos/toggleTodo',
   async ({ id, completed }, { rejectWithValue }) => {
     try {
-      return await patchTodo(id, { completed })
+      const data = await patchTodo(id, { completed })
+      return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })
     }

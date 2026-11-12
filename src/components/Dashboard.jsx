@@ -2,6 +2,8 @@ import { useEffect, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTodos, selectTodos, selectTodosStatus, selectTodosError } from '../features/todos/todosSlice.js'
 import { unauthorized } from '../features/auth/authSlice.js'
+import { validateSession } from '../api.js'
+import { useToast } from '../context/ToastContext.jsx'
 import Navbar from './Navbar.jsx'
 import CreateTodoForm from './CreateTodoForm.jsx'
 import TodoCard from './TodoCard.jsx'
@@ -16,6 +18,7 @@ import TodoCard from './TodoCard.jsx'
  */
 export default function Dashboard() {
   const dispatch = useDispatch()
+  const addToast = useToast()
   const todos  = useSelector(selectTodos)
   const status = useSelector(selectTodosStatus)
   const error  = useSelector(selectTodosError)
@@ -31,6 +34,36 @@ export default function Dashboard() {
   useEffect(() => {
     loadTodos()
   }, [loadTodos])
+  useEffect(() => {
+    let active = true
+    let checking = false
+
+    async function checkSession() {
+      if (!active || checking || document.visibilityState === 'hidden') return
+      checking = true
+      try {
+        await validateSession()
+      } catch (error) {
+        if (active && error?.status === 401) {
+          dispatch(unauthorized())
+          addToast('Your session is no longer valid. Please sign in again.', 'warning')
+        }
+      } finally {
+        checking = false
+      }
+    }
+
+    const intervalId = window.setInterval(checkSession, 5000)
+    window.addEventListener('focus', checkSession)
+    document.addEventListener('visibilitychange', checkSession)
+
+    return () => {
+      active = false
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', checkSession)
+      document.removeEventListener('visibilitychange', checkSession)
+    }
+  }, [dispatch, addToast])
 
   // ── Loading screen (initial load AND retry) ──────────────────────────────
   if (status === 'loading') {

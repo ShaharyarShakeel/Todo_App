@@ -1,61 +1,65 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { logIn, signUp, saveToken, saveEmail, getToken, getEmail, clearToken, clearEmail } from '../../api.js'
+import {
+  logIn,
+  signUp,
+  signInWithGoogle,
+  saveToken,
+  saveEmail,
+  getToken,
+  getEmail,
+  clearToken,
+  clearEmail,
+} from '../../api.js'
 
-/**
- * authSlice
- *
- * Manages who is logged in.
- * State: { user: { email, access_token } | null, status, error }
- */
-
-// Restore user from cookie + localStorage on page reload
 function getInitialUser() {
   const token = getToken()
   if (token) return { email: getEmail() || 'Your Account', access_token: token }
   return null
 }
 
-// ── Async Thunks ──────────────────────────────────────────────────────────────
+function persistAuthResult(data) {
+  saveToken(data.access_token)
+  saveEmail(data.email)
+  return data
+}
 
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const data = await logIn(email, password)
-      saveToken(data.access_token)
-      saveEmail(data.email)
-      return data
-    } catch (err) {
-      return rejectWithValue(err.message)
+      return persistAuthResult(await logIn(email, password))
+    } catch (error) {
+      return rejectWithValue(error.message)
     }
-  }
+  },
 )
 
 export const signupUser = createAsyncThunk(
   'auth/signupUser',
-  async ({ email, password }, { rejectWithValue }) => { //rejectWithValue is used to return a custom error when an API request fails in Redux Toolkit.
+  async ({ email, password }, { rejectWithValue }) => {
     try {
-      const data = await signUp(email, password)
-      saveToken(data.access_token)
-      saveEmail(data.email)
-      return data
-    } catch (err) {
-      return rejectWithValue(err.message)
+      return persistAuthResult(await signUp(email, password))
+    } catch (error) {
+      return rejectWithValue(error.message)
     }
-  }
+  },
 )
 
-// ── Slice ─────────────────────────────────────────────────────────────────────
+export const googleSignInUser = createAsyncThunk(
+  'auth/googleSignIn',
+  async (credential, { rejectWithValue }) => {
+    try {
+      return persistAuthResult(await signInWithGoogle(credential))
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  },
+)
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: getInitialUser(),
-    status: 'idle',  // 'idle' | 'loading' | 'failed'
-    error: null,
-  },
+  initialState: { user: getInitialUser(), status: 'idle', error: null },
   reducers: {
-    /** User clicked Logout */
     logout(state) {
       clearToken()
       clearEmail()
@@ -63,7 +67,6 @@ const authSlice = createSlice({
       state.status = 'idle'
       state.error = null
     },
-    /** A 401 response was received — stale/expired token */
     unauthorized(state) {
       clearToken()
       clearEmail()
@@ -71,44 +74,27 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      // loginUser
-      .addCase(loginUser.pending, (state) => {
-        state.status = 'loading'
-        state.error = null
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.status = 'idle'
-        state.user = action.payload
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.status = 'failed'
-        state.error = action.payload
-      })
-      // signupUser
-      .addCase(signupUser.pending, (state) => {
-        state.status = 'loading'
-        state.error = null
-      })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.status = 'idle'
-        state.user = action.payload
-      })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.status = 'failed'
-        state.error = action.payload
-      })
+    const thunks = [loginUser, signupUser, googleSignInUser]
+    for (const thunk of thunks) {
+      builder
+        .addCase(thunk.pending, (state) => {
+          state.status = 'loading'
+          state.error = null
+        })
+        .addCase(thunk.fulfilled, (state, action) => {
+          state.status = 'idle'
+          state.user = action.payload
+        })
+        .addCase(thunk.rejected, (state, action) => {
+          state.status = 'failed'
+          state.error = action.payload
+        })
+    }
   },
 })
 
 export const { logout, unauthorized } = authSlice.actions
 export default authSlice.reducer
-
-// ── Selectors ─────────────────────────────────────────────────────────────────
-// Components import and use these instead of accessing state.auth.* directly.
-// If the state shape changes, only update here — not in every component.
-
-export const selectUser       = (state) => state.auth.user
-export const selectUserEmail  = (state) => state.auth.user?.email
+export const selectUser = (state) => state.auth.user
+export const selectUserEmail = (state) => state.auth.user?.email
 export const selectAuthStatus = (state) => state.auth.status
-
