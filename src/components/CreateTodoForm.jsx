@@ -14,6 +14,7 @@ export default function CreateTodoForm() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
@@ -25,10 +26,11 @@ export default function CreateTodoForm() {
     }
     setLoading(true)
     try {
-      await dispatch(addTodo({ title: trimmedTitle, description: description.trim() })).unwrap()
+      await dispatch(addTodo({ title: trimmedTitle, description: description.trim(), dueDate })).unwrap()
       addToast('Todo created!', 'success')
       setTitle('')
       setDescription('')
+      setDueDate('')
     } catch (err) {
       if (err.status === 401) { dispatch(unauthorized()); return }
       addToast(err.message || 'Failed to create todo', 'error')
@@ -63,7 +65,18 @@ export default function CreateTodoForm() {
           />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={loading || title.length === 0}>
+        <div className="form-group">
+          <label htmlFor="todo-due-date">Due date *</label>
+          <input
+            id="todo-due-date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            required
+          />
+        </div>
+
+        <button className="btn btn-primary" type="submit" disabled={loading || title.length === 0 || !dueDate}>
           {loading ? 'Creating…' : 'Create Todo'}
         </button>
       </form>

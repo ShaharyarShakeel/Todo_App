@@ -24,9 +24,9 @@ export const fetchTodos = createAsyncThunk(
 
 export const addTodo = createAsyncThunk(
   'todos/addTodo',
-  async ({ title, description }, { rejectWithValue }) => {
+  async ({ title, description, dueDate }, { rejectWithValue }) => {
     try {
-      const data = await createTodo(title, description)
+      const data = await createTodo(title, description, dueDate)
       return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })
@@ -36,9 +36,9 @@ export const addTodo = createAsyncThunk(
 
 export const editTodo = createAsyncThunk(
   'todos/editTodo',
-  async ({ id, title, description, completed }, { rejectWithValue }) => {
+  async ({ id, title, description, completed, dueDate }, { rejectWithValue }) => {
     try {
-      const data = await updateTodo(id, title, description, completed)
+      const data = await updateTodo(id, title, description, completed, dueDate)
       return data
     } catch (err) {
       return rejectWithValue({ message: err.message, status: err.status })

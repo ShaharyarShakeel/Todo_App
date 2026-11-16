@@ -133,6 +133,11 @@ export async function signInWithGoogle(credential) {
     body: JSON.stringify({ credential }),
   })
 }
+
+/** Start the backend-managed GitHub OAuth redirect flow. */
+export function getGithubSignInUrl() {
+  return `${BASE_URL.replace(/\/$/, '')}/auth/github`
+}
 export async function getTodos() {
   const data = await request('/todos/')
   return data
@@ -142,10 +147,10 @@ export async function getTodos() {
  * POST /todos/
  * @returns {Promise<{id, title, description, completed}>}
  */
-export async function createTodo(title, description) {
+export async function createTodo(title, description, dueDate) {
   const data = await request('/todos/', {
     method: 'POST',
-    body: JSON.stringify({ title, description: description || null }),
+    body: JSON.stringify({ title, description: description || null, due_date: dueDate }),
   })
   return data
 }
@@ -154,10 +159,10 @@ export async function createTodo(title, description) {
  * PUT /todos/:id  â€” Full update
  * @returns {Promise<{id, title, description, completed}>}
  */
-export async function updateTodo(id, title, description, completed) {
+export async function updateTodo(id, title, description, completed, dueDate) {
   const data = await request(`/todos/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ title, description: description || null, completed }),
+    body: JSON.stringify({ title, description: description || null, completed, due_date: dueDate || null }),
   })
   return data
 }

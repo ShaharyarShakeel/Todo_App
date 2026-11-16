@@ -18,6 +18,11 @@ import { useToast } from '../context/ToastContext.jsx'
  * No onUpdated / onDeleted / onUnauthorized props needed —
  * everything goes directly to the Redux store.
  */
+function formatDueDate(value) {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString()
+}
+
 export default function TodoCard({ todo }) {
   const dispatch = useDispatch()
   const addToast = useToast()
@@ -26,6 +31,7 @@ export default function TodoCard({ todo }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editTitle, setEditTitle] = useState(todo.title)
   const [editDescription, setEditDescription] = useState(todo.description || '')
+  const [editDueDate, setEditDueDate] = useState(todo.due_date || '')
   const [editCompleted, setEditCompleted] = useState(todo.completed)
   const [loading, setLoading] = useState(false)
 
@@ -70,6 +76,7 @@ export default function TodoCard({ todo }) {
         title: editTitle.trim(),
         description: editDescription.trim(),
         completed: editCompleted,
+        dueDate: editDueDate,
       })).unwrap()
       addToast('Todo updated!', 'success')
       setEditing(false)
@@ -108,6 +115,11 @@ export default function TodoCard({ todo }) {
             {todo.description && (
               <div className="todo-description">{todo.description}</div>
             )}
+            {todo.due_date && (
+              <div className="todo-due-date">
+                Due: <time dateTime={todo.due_date}>{formatDueDate(todo.due_date)}</time>
+              </div>
+            )}
           </>
         )}
 
@@ -127,6 +139,13 @@ export default function TodoCard({ todo }) {
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Description (optional)"
               rows={2}
+            />
+            <label htmlFor={`due-date-${todo.id}`}>Due date</label>
+            <input
+              id={`due-date-${todo.id}`}
+              type="date"
+              value={editDueDate}
+              onChange={(e) => setEditDueDate(e.target.value)}
             />
             <div className="edit-form-row">
               <input

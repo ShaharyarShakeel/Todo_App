@@ -56,6 +56,11 @@ export const googleSignInUser = createAsyncThunk(
   },
 )
 
+export const completeGithubSignIn = createAsyncThunk(
+  'auth/completeGithubSignIn',
+  async (authResult) => persistAuthResult(authResult),
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: { user: getInitialUser(), status: 'idle', error: null },
@@ -74,7 +79,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    const thunks = [loginUser, signupUser, googleSignInUser]
+    const thunks = [loginUser, signupUser, googleSignInUser, completeGithubSignIn]
     for (const thunk of thunks) {
       builder
         .addCase(thunk.pending, (state) => {
